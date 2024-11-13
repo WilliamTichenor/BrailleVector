@@ -2,6 +2,7 @@ import drawsvg as dw
 import pybrl as brl
 from PIL import ImageFont
 import math
+import platform
 
 
 def textToBraille(s):
@@ -11,9 +12,17 @@ def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
 def textToSVG(s, mirror=False):
+    osname = platform.system()
+    if osname == "Windows":
+        fontName = "cour.ttf"  # Windows path
+    elif osname == "Darwin":  # macOS
+        fontName = "Courier New.ttf"  # macOS path
+    else:
+        fontName = "cour.ttf"
+    
     fontSize = 24
-    margins = 20
     dpi = 96
+    margins = mmToPx(15, dpi)
     paperSizes = {
         "A4": (210, 297), #In mm
         "A3": (297, 420),
@@ -23,9 +32,13 @@ def textToSVG(s, mirror=False):
     }
     width = mmToPx(paperSizes["A4"][0],dpi)
     height = mmToPx(paperSizes["A4"][1],dpi)
-    font = ImageFont.truetype("cour.ttf", fontSize)
+    try:
+        font = ImageFont.truetype(fontName, fontSize)
+    except:
+        print("Courier New not found! Using Liberation Mono as a backup.")
+        font = ImageFont.truetype("LiberationMono-Regular.ttf", fontSize)
     charLen = font.getlength("⠻")
-    charsPerLine = math.floor((width-margins)/charLen)-1
+    charsPerLine = math.floor((width-(margins*2))/charLen)-1
     s=s.replace("\n"," ")
 
     news = ""
@@ -38,10 +51,18 @@ def textToSVG(s, mirror=False):
 
 
     d = dw.Drawing(width, height, origin=(0,0), font_family="Courier New") #Switch this to monospace if possible! May not matter, but online viewers are being strange.
+    # Mark top right corner
+    if mirror:
+        e = dw.Group(transform="scale(-1, 1) translate({}, 0)".format(-1*width))
+        e.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
+        e.append(dw.Line(width-30, 0, width, 30))
+        d.append(e)
+    else:
+        d.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
+        d.append(dw.Line(width-50, 0, width, 50, stroke='black'))
 
-    d.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
     d.save_svg("test.svg")
 
 if __name__ == "__main__":
     #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
-    textToSVG("Lorem ipsum odor amet, consectetuer adipiscing elit. Mauris himenaeos varius tincidunt quam vehicula. Facilisis placerat dictumst dictum mollis nisl dictum accumsan. Augue vulputate porttitor est porta, blandit tempor nullam felis. Diam sem dictumst placerat ornare efficitur. Sociosqu mattis nec placerat erat dignissim leo velit nisi. Maecenas arcu vitae netus, iaculis inceptos consequat. Torquent lacus enim volutpat fusce vel facilisis malesuada diam. Platea rhoncus dapibus luctus montes, sapien nostra enim. Malesuada ex laoreet dignissim facilisi venenatis per morbi primis.")
+    textToSVG("⠠⠇⠕⠗⠑⠍ ⠊⠏⠎⠥⠍ ⠕⠙⠕⠗ ⠁⠍⠑⠞ ⠒⠎⠑⠉⠞⠑⠞⠥⠻ ⠁⠙⠊⠏⠊⠎⠉⠬ ⠑⠇⠊⠞ ⠠⠍⠁⠥⠗⠊⠎ ⠓⠊⠍⠢⠁⠑⠕⠎ ⠧⠜⠊⠥⠎ ⠞⠔⠝⠉⠊⠙⠥⠞ ⠟⠥⠁⠍ ⠧⠑⠓⠊⠉⠥⠇⠁ ⠠⠋⠁⠉⠊⠇⠊⠎⠊⠎ ⠏⠇⠁⠉⠻⠁⠞ ⠙⠊⠉⠞⠥⠍⠌ ⠙⠊⠉⠞⠥⠍ ⠍⠕⠇⠇⠊⠎ ⠝⠊⠎⠇ ⠙⠊⠉⠞⠥⠍ ⠁⠒⠥⠍⠎⠁⠝ ⠠⠁⠥⠛⠥⠑ ⠧⠥⠇⠏⠥⠞⠁⠞⠑ ⠏⠕⠗⠞⠞⠊⠞⠕⠗ ⠑⠌ ⠏⠕⠗⠞⠁ ⠃⠇⠯⠊⠞ ⠞⠑⠍⠏⠕⠗ ⠝⠥⠇⠇⠁⠍ ⠋⠑⠇⠊⠎ ⠠⠙⠊⠁⠍ ⠎⠑⠍ ⠙⠊⠉⠞⠥⠍⠌ ⠏⠇⠁⠉⠻⠁⠞ ⠕⠗⠝⠜⠑ ⠑⠖⠊⠉⠊⠞⠥⠗ ⠠⠎⠕⠉⠊⠕⠎⠟⠥ ⠍⠁⠞⠞⠊⠎ ⠝⠑⠉ ⠏⠇⠁⠉⠻⠁⠞ ⠻⠁⠞ ⠙⠊⠛⠝⠊⠎⠎⠊⠍ ⠇⠑⠕ ⠧⠑⠇⠊⠞ ⠝⠊⠎⠊ ⠠⠍⠁⠑⠉⠢⠁⠎ ⠜⠉⠥ ⠧⠊⠞⠁⠑ ⠝⠑⠞⠥⠎ ⠊⠁⠉⠥⠇⠊⠎ ⠔⠉⠑⠏⠞⠕⠎ ⠒⠎⠑⠟⠥⠁⠞ ⠠⠞⠕⠗⠟⠥⠢⠞ ⠇⠁⠉⠥⠎ ⠢⠊⠍ ⠧⠕⠇⠥⠞⠏⠁⠞ ⠋⠥⠎⠉⠑ ⠧⠑⠇ ⠋⠁⠉⠊⠇⠊⠎⠊⠎ ⠍⠁⠇⠑⠎⠥⠁⠙⠁ ⠙⠊⠁⠍ ⠠⠏⠇⠁⠞⠑⠁ ⠗⠓⠕⠝⠉⠥⠎ ⠙⠁⠏⠊⠃⠥⠎ ⠇⠥⠉⠞⠥⠎ ⠍⠕⠝⠞⠑⠎ ⠎⠁⠏⠊⠢ ⠝⠕⠌⠗⠁ ⠢⠊⠍ ⠠⠍⠁⠇⠑⠎⠥⠁⠙⠁ ⠑⠭ ⠇⠁⠕⠗⠑⠑⠞ ⠙⠊⠛⠝⠊⠎⠎⠊⠍ ⠋⠁⠉⠊⠇⠊⠎⠊ ⠧⠢⠢⠁⠞⠊⠎ ⠏⠻ ⠍⠕⠗⠃⠊ ⠏⠗⠊⠍⠊⠎")
