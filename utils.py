@@ -23,8 +23,9 @@ def textToSVG(s, mirror=False):
     fontSize = 24
     dpi = 96
     margins = mmToPx(15, dpi)
+    rightMarginBonus = 100 # Depending on the svg viewer/conversions/other nonsense, the auto text wrapping may break down. Change this to tune the margins!
     paperSizes = {
-        "A4": (210, 297), #In mm
+        "A4": (210, 297), # In mm
         "A3": (297, 420),
 
         "B4": (250, 353),
@@ -38,7 +39,7 @@ def textToSVG(s, mirror=False):
         print("Courier New not found! Using Liberation Mono as a backup.")
         font = ImageFont.truetype("LiberationMono-Regular.ttf", fontSize)
     charLen = font.getlength("⠻")
-    charsPerLine = math.floor((width-(margins*2))/charLen)-1
+    charsPerLine = math.floor((width-(margins*2)-rightMarginBonus)/charLen)-1
     s=s.replace("\n"," ")
 
     news = ""
