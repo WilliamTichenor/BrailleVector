@@ -23,7 +23,8 @@ def textToSVG(s, mirror=False):
     fontSize = 24
     dpi = 96
     margins = mmToPx(15, dpi)
-    rightMarginBonus = 100 # Depending on the svg viewer/conversions/other nonsense, the auto text wrapping may break down. Change this to tune the margins!
+    rightMarginBonus = 0 # Depending on the svg viewer/conversions/other nonsense, the auto text wrapping may break down. Change this to tune the margins!
+    charSizeBonus = 1.1 # same purpose as above: increase predicted size of characters by this factor
     paperSizes = {
         "A4": (210, 297), # In mm
         "A3": (297, 420),
@@ -38,8 +39,8 @@ def textToSVG(s, mirror=False):
     except:
         print("Courier New not found! Using Liberation Mono as a backup.")
         font = ImageFont.truetype("LiberationMono-Regular.ttf", fontSize)
-    charLen = font.getlength("⠻")
-    charsPerLine = math.floor((width-(margins*2)-rightMarginBonus)/charLen)-1
+    charLen = font.getlength("⠻")*charSizeBonus
+    charsPerLine = math.floor((width-(margins*2)-rightMarginBonus)/charLen)
     s=s.replace("\n"," ")
 
     news = ""
@@ -56,7 +57,7 @@ def textToSVG(s, mirror=False):
     if mirror:
         e = dw.Group(transform="scale(-1, 1) translate({}, 0)".format(-1*width))
         e.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
-        e.append(dw.Line(width-30, 0, width, 30))
+        e.append(dw.Line(width-50, 0, width, 50))
         d.append(e)
     else:
         d.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
@@ -66,4 +67,4 @@ def textToSVG(s, mirror=False):
 
 if __name__ == "__main__":
     #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
-    textToSVG("⠠⠇⠕⠗⠑⠍ ⠊⠏⠎⠥⠍ ⠕⠙⠕⠗ ⠁⠍⠑⠞ ⠒⠎⠑⠉⠞⠑⠞⠥⠻ ⠁⠙⠊⠏⠊⠎⠉⠬ ⠑⠇⠊⠞ ⠠⠍⠁⠥⠗⠊⠎ ⠓⠊⠍⠢⠁⠑⠕⠎ ⠧⠜⠊⠥⠎ ⠞⠔⠝⠉⠊⠙⠥⠞ ⠟⠥⠁⠍ ⠧⠑⠓⠊⠉⠥⠇⠁ ⠠⠋⠁⠉⠊⠇⠊⠎⠊⠎ ⠏⠇⠁⠉⠻⠁⠞ ⠙⠊⠉⠞⠥⠍⠌ ⠙⠊⠉⠞⠥⠍ ⠍⠕⠇⠇⠊⠎ ⠝⠊⠎⠇ ⠙⠊⠉⠞⠥⠍ ⠁⠒⠥⠍⠎⠁⠝ ⠠⠁⠥⠛⠥⠑ ⠧⠥⠇⠏⠥⠞⠁⠞⠑ ⠏⠕⠗⠞⠞⠊⠞⠕⠗ ⠑⠌ ⠏⠕⠗⠞⠁ ⠃⠇⠯⠊⠞ ⠞⠑⠍⠏⠕⠗ ⠝⠥⠇⠇⠁⠍ ⠋⠑⠇⠊⠎ ⠠⠙⠊⠁⠍ ⠎⠑⠍ ⠙⠊⠉⠞⠥⠍⠌ ⠏⠇⠁⠉⠻⠁⠞ ⠕⠗⠝⠜⠑ ⠑⠖⠊⠉⠊⠞⠥⠗ ⠠⠎⠕⠉⠊⠕⠎⠟⠥ ⠍⠁⠞⠞⠊⠎ ⠝⠑⠉ ⠏⠇⠁⠉⠻⠁⠞ ⠻⠁⠞ ⠙⠊⠛⠝⠊⠎⠎⠊⠍ ⠇⠑⠕ ⠧⠑⠇⠊⠞ ⠝⠊⠎⠊ ⠠⠍⠁⠑⠉⠢⠁⠎ ⠜⠉⠥ ⠧⠊⠞⠁⠑ ⠝⠑⠞⠥⠎ ⠊⠁⠉⠥⠇⠊⠎ ⠔⠉⠑⠏⠞⠕⠎ ⠒⠎⠑⠟⠥⠁⠞ ⠠⠞⠕⠗⠟⠥⠢⠞ ⠇⠁⠉⠥⠎ ⠢⠊⠍ ⠧⠕⠇⠥⠞⠏⠁⠞ ⠋⠥⠎⠉⠑ ⠧⠑⠇ ⠋⠁⠉⠊⠇⠊⠎⠊⠎ ⠍⠁⠇⠑⠎⠥⠁⠙⠁ ⠙⠊⠁⠍ ⠠⠏⠇⠁⠞⠑⠁ ⠗⠓⠕⠝⠉⠥⠎ ⠙⠁⠏⠊⠃⠥⠎ ⠇⠥⠉⠞⠥⠎ ⠍⠕⠝⠞⠑⠎ ⠎⠁⠏⠊⠢ ⠝⠕⠌⠗⠁ ⠢⠊⠍ ⠠⠍⠁⠇⠑⠎⠥⠁⠙⠁ ⠑⠭ ⠇⠁⠕⠗⠑⠑⠞ ⠙⠊⠛⠝⠊⠎⠎⠊⠍ ⠋⠁⠉⠊⠇⠊⠎⠊ ⠧⠢⠢⠁⠞⠊⠎ ⠏⠻ ⠍⠕⠗⠃⠊ ⠏⠗⠊⠍⠊⠎")
+    textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ ")
