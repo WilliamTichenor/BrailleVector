@@ -1,8 +1,6 @@
 import drawsvg as dw
 import pybrl as brl
 from PIL import ImageFont, Image, ImageDraw
-import math
-import platform
 
 
 def textToBraille(s):
@@ -41,6 +39,7 @@ def textToSVG(s, mirror=False):
     font = ImageFont.truetype(fontName, fontSize)
     charLen = font.getlength("⠻")*charSizeBonus
 
+    """
     #bounding box testing (This works for real! just need to physically draw the line to check its size)
     image = Image.new("RGBA", (1000, 200), (255, 255, 255, 0))
     render = ImageDraw.Draw(image)
@@ -53,8 +52,26 @@ def textToSVG(s, mirror=False):
     render.text((0, 0), "ww", font=font, fill="black")
     testbb1 = image.getbbox()
     print("w: "+str(testbb1[2]-testbb1[0]))
+    """
+
 
     """
+    # Cairo Testing 1
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
+    context = cairo.Context(surface)
+
+    # Set the font face and size
+    context.select_font_face("Courier New")
+    context.set_font_size(fontSize)
+
+    # Measure the text width and height
+    (_, _, width2, _, _, _) = context.text_extents("abcde")
+
+    print(f"Text width: {width2}")
+    """
+
+    """
+    # line length by character length
     charsPerLine = math.floor((width-(margins*2)-rightMarginBonus)/charLen)
     s=s.replace("\n"," ")
 
@@ -83,6 +100,7 @@ def textToSVG(s, mirror=False):
             render = ImageDraw.Draw(image)
             render.text((0, 0), newline, font=font, fill="black")
             bb = image.getbbox()
+
             if (bb[2]-bb[0]) > (width-(margins*2)): break
             else: 
                 line = newline
@@ -105,6 +123,7 @@ def textToSVG(s, mirror=False):
 
     d.append_css(style)
     d.save_svg("test.svg")
+    d.as_svg
     # d.save_png("test.png")
 
 if __name__ == "__main__":
