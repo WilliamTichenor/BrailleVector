@@ -1,6 +1,6 @@
 import drawsvg as dw
 import pybrl as brl
-from PIL import ImageFont
+from PIL import ImageFont, Image, ImageDraw
 import math
 import platform
 
@@ -12,13 +12,17 @@ def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
 def textToSVG(s, mirror=False):
-    osname = platform.system()
-    if osname == "Windows":
-        fontName = "cour.ttf"  # Windows path
-    elif osname == "Darwin":  # macOS
-        fontName = "Courier New.ttf"  # macOS path
-    else:
-        fontName = "cour.ttf"
+    fontName = "bin/cour.ttf"
+
+    fontFile = open("bin/courText.txt")
+    s64 = fontFile.read()
+    fontFile.close()
+    style = """
+    @font-face {
+        font-family: courCustom;
+        src: url("""+s64+""")
+    }
+    """
     
     fontSize = 24
     dpi = 96
@@ -34,15 +38,23 @@ def textToSVG(s, mirror=False):
     }
     width = mmToPx(paperSizes["A4"][0],dpi)
     height = mmToPx(paperSizes["A4"][1],dpi)
-    try:
-        font = ImageFont.truetype(fontName, fontSize) # Even with monospace font, braille dots are larger than letters!!! this lib doesn't seem to respect that
-    except:
-        print("Courier New not found! Using Liberation Mono as a backup.")
-        font = ImageFont.truetype("LiberationMono-Regular.ttf", fontSize)
+    font = ImageFont.truetype(fontName, fontSize)
     charLen = font.getlength("⠻")*charSizeBonus
-    testb1 = font.getbbox("⠻")
-    testb2 = font.getbbox("w")
-    print("diff: "+str(testb1[2]-testb1[0])) # This works!!!
+
+    #bounding box testing (This works for real! just need to physically draw the line to check its size)
+    image = Image.new("RGBA", (1000, 200), (255, 255, 255, 0))
+    render = ImageDraw.Draw(image)
+    render.text((0, 0), "⠻⠻", font=font, fill="black")
+    testbb1 = image.getbbox()
+    print("⠻: "+str(testbb1[2]-testbb1[0]))
+
+    image = Image.new("RGBA", (1000, 200), (255, 255, 255, 0))
+    render = ImageDraw.Draw(image)
+    render.text((0, 0), "ww", font=font, fill="black")
+    testbb1 = image.getbbox()
+    print("w: "+str(testbb1[2]-testbb1[0]))
+
+    """
     charsPerLine = math.floor((width-(margins*2)-rightMarginBonus)/charLen)
     s=s.replace("\n"," ")
 
@@ -53,9 +65,34 @@ def textToSVG(s, mirror=False):
         s = s[index+1:]
     s=news
     print(s)
+    """
+    s=s.strip()
+    s=s.replace("\n"," ") # Current issues: does not preserve newlines, super long words will not wrap
+    news = ""
+    while s:
+        line = ""
+        while True:
+            index = s.find(" ")
+            if index == -1:
+                line+=s
+                s = ""
+                break
+            newline = line+s[:index+1]
+
+            image = Image.new("RGBA", (int(width), int(height)), (255, 255, 255, 0))
+            render = ImageDraw.Draw(image)
+            render.text((0, 0), newline, font=font, fill="black")
+            bb = image.getbbox()
+            if (bb[2]-bb[0]) > (width-(margins*2)): break
+            else: 
+                line = newline
+                s = s[index+1:]
+        news+=line.strip()+"\n"
+    s=news
+    print(s)
 
 
-    d = dw.Drawing(width, height, origin=(0,0), font_family="Courier New") #Switch this to monospace if possible! May not matter, but online viewers are being strange.
+    d = dw.Drawing(width, height, origin=(0,0), font_family="courCustom")
     # Mark top right corner
     if mirror:
         e = dw.Group(transform="scale(-1, 1) translate({}, 0)".format(-1*width))
@@ -66,7 +103,9 @@ def textToSVG(s, mirror=False):
         d.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
         d.append(dw.Line(width-50, 0, width, 50, stroke='black'))
 
+    d.append_css(style)
     d.save_svg("test.svg")
+    # d.save_png("test.png")
 
 if __name__ == "__main__":
     #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
