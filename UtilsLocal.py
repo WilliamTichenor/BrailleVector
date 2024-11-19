@@ -1,6 +1,7 @@
 import drawsvg as dw
 import pybrl as brl
 from playwright.sync_api import sync_playwright
+import os
 
 
 def textToBraille(s):
@@ -19,6 +20,14 @@ def textToSVG(s, mirror=False):
         src: url("""+s64+""")
     }
     """
+    fontPath = os.path.abspath("bin/cour1.ttf")
+    print(fontPath)
+    styleCompact = """
+    @font-face {
+        font-family: courCustom;
+        src: url('"""+fontPath+"""')
+    }
+    """
     
     fontSize = 24
     dpi = 96
@@ -35,9 +44,10 @@ def textToSVG(s, mirror=False):
 
     s=s.strip()
     s=s.replace("\n"," ") # TODO: Re-add newlines, fix super-long word infinitly wrapping
+    totalLen=len(s)
     news = ""
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.webkit.launch(headless=True)
         page = browser.new_page()
         while s:
             line = ""
@@ -54,7 +64,7 @@ def textToSVG(s, mirror=False):
                 # Playwright browser test method
                 d = dw.Drawing(width, height, origin=(0,0), font_family="courCustom")
                 d.append(dw.Text(newline, font_size=fontSize, x=0, y=0))
-                d.append_css(style)
+                d.append_css(styleCompact)
                 svgs = d.as_svg()
                 svgs = svgs.replace('<text ', '<text id="myText" ')
                 svg_html = "<!DOCTYPE html><html><body>"+svgs+"</body></html>"
@@ -67,7 +77,9 @@ def textToSVG(s, mirror=False):
                     }
                 """)
 
-                if textWidth > (width-(margins*2)): break
+                if textWidth > (width-(margins*2)): 
+                    print(str((totalLen-len(s))*100/totalLen)[:4]+"%")
+                    break
                 else: 
                     line = newline
                     s = s[index+1:]
