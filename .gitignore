@@ -1,6 +1,6 @@
-.png
-.svg
-.dwg
+*.png
+*.svg
+*.dwg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
