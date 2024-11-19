@@ -34,7 +34,7 @@ def textToSVG(s, mirror=False):
     height = mmToPx(paperSizes["A4"][1],dpi)
 
     s=s.strip()
-    s=s.replace("\n"," ") # Current issues: does not preserve newlines, super long words will not wrap
+    s=s.replace("\n"," ") # TODO: Re-add newlines, fix super-long word infinitly wrapping
     news = ""
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
