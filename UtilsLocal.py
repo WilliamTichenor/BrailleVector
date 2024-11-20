@@ -1,8 +1,32 @@
 import drawsvg as dw
 import pybrl as brl
 from playwright.sync_api import sync_playwright
-import os
+from http.server import SimpleHTTPRequestHandler
+from socketserver import TCPServer
+import threading
 
+
+class CORSSimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        """Add CORS headers to the response."""
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        super().end_headers()
+
+def start_server(port):
+    server = TCPServer(("localhost", port), CORSSimpleHTTPRequestHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.daemon = True
+    thread.start()
+    print(f"Serving at http://localhost:{port}")
+    return server, thread
+
+def stop_server(server, thread):
+    if server:
+        server.shutdown()
+        thread.join()
+        print("Server stopped.")
 
 def textToBraille(s):
     return brl.toUnicodeSymbols(brl.translate(s), flatten=True)
@@ -11,6 +35,7 @@ def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
 def textToSVG(s, mirror=False):
+    PORT = 8000
     fontFile = open("bin/courText.txt")
     s64 = fontFile.read()
     fontFile.close()
@@ -20,7 +45,7 @@ def textToSVG(s, mirror=False):
         src: url("""+s64+""")
     }
     """
-    fontPath = os.path.abspath("bin/cour1.ttf")
+    fontPath = f"http://localhost:{PORT}/bin/cour.ttf"
     print(fontPath)
     styleCompact = """
     @font-face {
@@ -46,45 +71,50 @@ def textToSVG(s, mirror=False):
     s=s.replace("\n"," ") # TODO: Re-add newlines, fix super-long word infinitly wrapping
     totalLen=len(s)
     news = ""
-    with sync_playwright() as p:
-        browser = p.webkit.launch(headless=True)
-        page = browser.new_page()
-        while s:
-            line = ""
-            while True:
-                index = s.find(" ")
-                if index == -1:
-                    line+=s
-                    s = ""
-                    break
-                newline = line+s[:index+1]
 
-                # Test the size of newline!
-                
-                # Playwright browser test method
-                d = dw.Drawing(width, height, origin=(0,0), font_family="courCustom")
-                d.append(dw.Text(newline, font_size=fontSize, x=0, y=0))
-                d.append_css(styleCompact)
-                svgs = d.as_svg()
-                svgs = svgs.replace('<text ', '<text id="myText" ')
-                svg_html = "<!DOCTYPE html><html><body>"+svgs+"</body></html>"
-                page.set_content(svg_html)
-                textWidth = page.evaluate("""
-                    () => {
-                        const text = document.getElementById('myText');
-                        const bbox = text.getBBox();
-                        return bbox.width;
-                    }
-                """)
+    server, thread = start_server(PORT)
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            while s:
+                line = ""
+                while True:
+                    index = s.find(" ")
+                    if index == -1:
+                        line+=s
+                        s = ""
+                        break
+                    newline = line+s[:index+1]
 
-                if textWidth > (width-(margins*2)): 
-                    print(str((totalLen-len(s))*100/totalLen)[:4]+"%")
-                    break
-                else: 
-                    line = newline
-                    s = s[index+1:]
-            news+=line.strip()+"\n"
-        browser.close()
+                    # Test the size of newline!
+                    
+                    # Playwright browser test method
+                    d = dw.Drawing(width, height, origin=(0,0), font_family="courCustom")
+                    d.append(dw.Text(newline, font_size=fontSize, x=0, y=0))
+                    d.append_css(styleCompact)
+                    svgs = d.as_svg()
+                    svgs = svgs.replace('<text ', '<text id="myText" ')
+                    svg_html = "<!DOCTYPE html><html><body>"+svgs+"</body></html>"
+                    page.set_content(svg_html)
+                    textWidth = page.evaluate("""
+                        () => {
+                            const text = document.getElementById('myText');
+                            const bbox = text.getBBox();
+                            return bbox.width;
+                        }
+                    """)
+
+                    if textWidth > (width-(margins*2)): 
+                        print(str((totalLen-len(s))*100/totalLen)[:4]+"%")
+                        break
+                    else: 
+                        line = newline
+                        s = s[index+1:]
+                news+=line.strip()+"\n"
+            browser.close()
+    finally:
+        stop_server(server, thread)
     s=news
     print(s)
 
@@ -108,3 +138,4 @@ if __name__ == "__main__":
     #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
     textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way--in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.")
     #textToSVG("testing!")
+    #textToSVG("supercalifragilisticexpialidocioussupercalifragilisticexpialidocious!")
