@@ -37,6 +37,7 @@ def mmToPx(mm, dpi):
 
 def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=15, marginsVmm=15, widthmm=210, heightmm=297):
     feedback["value"]=0
+    feedback.master.update_idletasks()
     PORT = 8000
     fontFile = open("bin/courText.txt")
     s64 = fontFile.read()
