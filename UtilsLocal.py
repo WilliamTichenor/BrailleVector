@@ -25,6 +25,7 @@ def start_server(port):
 def stop_server(server, thread):
     if server:
         server.shutdown()
+        server.server_close()
         thread.join()
         print("Server stopped.")
 
@@ -34,7 +35,8 @@ def textToBraille(s):
 def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
-def textToSVG(s, mirror=False):
+def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=15, marginsVmm=15, widthmm=210, heightmm=297):
+    feedback["value"]=0
     PORT = 8000
     fontFile = open("bin/courText.txt")
     s64 = fontFile.read()
@@ -54,18 +56,11 @@ def textToSVG(s, mirror=False):
     }
     """
     
-    fontSize = 24
-    dpi = 96
-    margins = mmToPx(15, dpi)
-    paperSizes = {
-        "A4": (210, 297), # In mm
-        "A3": (297, 420),
-
-        "B4": (250, 353),
-        "B5": (176, 250)
-    }
-    width = mmToPx(paperSizes["A4"][0],dpi)
-    height = mmToPx(paperSizes["A4"][1],dpi)
+    margins = mmToPx(marginsmm, dpi)
+    marginsV = mmToPx(marginsVmm, dpi)
+    
+    width = mmToPx(widthmm,dpi)
+    height = mmToPx(heightmm,dpi)
 
     s=s.strip()
     s=s.replace("\n"," ") # TODO: Re-add newlines, fix super-long word infinitly wrapping
@@ -106,7 +101,7 @@ def textToSVG(s, mirror=False):
                     """)
 
                     if textWidth > (width-(margins*2)): 
-                        print(str((totalLen-len(s))*100/totalLen)[:4]+"%")
+                        feedback["value"]=(totalLen-len(s))*100/totalLen
                         break
                     else: 
                         line = newline
@@ -123,15 +118,16 @@ def textToSVG(s, mirror=False):
     # Mark top right corner
     if mirror:
         e = dw.Group(transform="scale(-1, 1) translate({}, 0)".format(-1*width))
-        e.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
+        e.append(dw.Text(s, font_size=fontSize, x=margins, y=marginsV))
         e.append(dw.Line(width-50, 0, width, 50))
         d.append(e)
     else:
-        d.append(dw.Text(s, font_size=fontSize, x=margins, y=60))
+        d.append(dw.Text(s, font_size=fontSize, x=margins, y=marginsV))
         d.append(dw.Line(width-50, 0, width, 50, stroke='black'))
 
     d.append_css(style)
     d.save_svg("test.svg")
+    feedback["value"]=100
 
 
 if __name__ == "__main__":
