@@ -35,7 +35,14 @@ def textToBraille(s):
 def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
-def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=15, marginsVmm=15, widthmm=210, heightmm=297):
+def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marginsVmm=25, widthmm=210, heightmm=297):
+    print(mirror)
+    print(fontSize)
+    print(dpi)
+    print(marginsmm)
+    print(marginsVmm)
+    print(widthmm)
+    print(heightmm)
     feedback["value"]=0
     feedback.master.update_idletasks()
     PORT = 8000
@@ -120,7 +127,7 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=15, marg
     if mirror:
         e = dw.Group(transform="scale(-1, 1) translate({}, 0)".format(-1*width))
         e.append(dw.Text(s, font_size=fontSize, x=margins, y=marginsV))
-        e.append(dw.Line(width-50, 0, width, 50))
+        e.append(dw.Line(width-50, 0, width, 50, stroke='black'))
         d.append(e)
     else:
         d.append(dw.Text(s, font_size=fontSize, x=margins, y=marginsV))
@@ -133,6 +140,6 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=15, marg
 
 if __name__ == "__main__":
     #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
-    textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way--in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.")
+    textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way--in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.", {'value':0})
     #textToSVG("testing!")
     #textToSVG("supercalifragilisticexpialidocioussupercalifragilisticexpialidocious!")
