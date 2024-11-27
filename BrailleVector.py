@@ -4,7 +4,7 @@ import UtilsLocal
 import tkentrycomplete
 
 
-def brailleWrapper(s, loadingBar):
+def brailleWrapper(s, progressBar):
     if s == "" or inputText.cget('fg') == "gray":
         print("Please enter text!")
         return
@@ -18,21 +18,21 @@ def brailleWrapper(s, loadingBar):
     kwargs['marginsVmm'] = marginsvval.get()
     kwargs['widthmm'] = paperWidthval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][0]
     kwargs['heightmm'] = paperHeightval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][1]
-    UtilsLocal.textToSVG(sB, loadingBar, **kwargs)
+    UtilsLocal.textToSVG(sB, progressBar, **kwargs)
 
-def on_focus_in(event):
+def onFocusIn(event): # pylint: disable=W0613
     # Remove placeholder text when the user focuses on the widget
-    if inputText.get("1.0", "end-1c") == placeholderText:
+    if inputText.get("1.0", "end-1c") == PLACEHOLDER_TEXT:
         inputText.delete("1.0", "end")
         inputText.config(fg="black")
 
-def on_focus_out(event):
+def onFocusOut(event): # pylint: disable=W0613
     # Restore placeholder text if the widget is empty
     if not inputText.get("1.0", "end-1c").strip():
-        inputText.insert("1.0", placeholderText)
+        inputText.insert("1.0", PLACEHOLDER_TEXT)
         inputText.config(fg="gray")
 
-def on_radio_selection():
+def onRadioSelection():
     if paperTypeRadio.get() == "select":
         paperWidth["state"] = "disabled"
         paperWidthLabel["state"] = "disabled"
@@ -50,15 +50,15 @@ def on_radio_selection():
         paperSelect["state"] = "disabled"
         paperSelectLabel["state"] = "disabled"
 
-def spinboxValidate(user_input, min, max):
-    if  user_input.isdigit():
-        if int(user_input) < int(min) or int(user_input) > int(max):
+def spinboxValidate(userInput, amin, amax):
+    if  userInput.isdigit():
+        if int(userInput) < int(amin) or int(userInput) > int(amax):
             print ("Out of range")
             return False
-        print(user_input)
+        print(userInput)
         return True
-    elif user_input == "":
-        print(user_input)
+    elif userInput == "":
+        print(userInput)
         return True
     else:
         print("Not numeric")
@@ -67,8 +67,8 @@ def spinboxValidate(user_input, min, max):
 def uploadText():
     filePath = filedialog.askopenfilename()
     print("Opening: "+filePath)
-    file = open(filePath, "rt")
-    s = file.read()
+    with open(filePath, "rt", encoding="utf-8") as file:
+        s = file.read()
     inputText.delete(1.0, tk.END)
     inputText.insert(tk.END, s)
     inputText.config(fg="black")
@@ -95,12 +95,12 @@ if __name__ == "__main__":
     frameBot.pack(fill="x")
 
 
-    placeholderText = "Enter your text here..."
+    PLACEHOLDER_TEXT = "Enter your text here..."
     inputText = tk.Text(frameTop, height=10, width=30, fg="gray", wrap="word")
     inputText.pack(side="left", padx=(10,0), pady=10, fill="both", expand=True)
-    inputText.insert("1.0", placeholderText)
-    inputText.bind("<FocusIn>", on_focus_in)
-    inputText.bind("<FocusOut>", on_focus_out)
+    inputText.insert("1.0", PLACEHOLDER_TEXT)
+    inputText.bind("<FocusIn>", onFocusIn)
+    inputText.bind("<FocusOut>", onFocusOut)
 
     scrollbar = tk.Scrollbar(frameTop, command=inputText.yview)
     scrollbar.pack(side="left", pady=10, fill="y")
@@ -109,30 +109,38 @@ if __name__ == "__main__":
     textUploadButton = tk.Button(frameTop, text="Upload Text", command=uploadText)
     textUploadButton.pack(side="top", padx=10, pady=30)
 
-    translateButton = tk.Button(frameTop, text="Convert and Save", command=lambda: brailleWrapper(inputText.get("1.0", "end-1c"), loadingBar))
+    translateButton = tk.Button(frameTop, text="Convert and Save",
+            command=lambda: brailleWrapper(inputText.get("1.0", "end-1c"), loadingBar))
     translateButton.pack(side="top", padx=10)
 
 
     fontsizeval = tk.IntVar(value=24)
-    fontsize = tk.Spinbox(frameBot, width=4, textvariable=fontsizeval, from_=1, to=9999, increment=1, validate="key", validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
+    fontsize = tk.Spinbox(frameBot, width=4, textvariable=fontsizeval, from_=1, to=9999,
+            increment=1, validate="key",
+            validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
     fontsize.grid(row=0, column=1, pady=5)
     fontsizeLabel = tk.Label(frameBot, text= "Font Size:")
     fontsizeLabel.grid(row=0, column=0, pady=5, padx=10, sticky="e")
 
     dpival = tk.IntVar(value=96)
-    dpi = tk.Spinbox(frameBot, width=4, textvariable=dpival, from_=1, to=9999, increment=1, validate="key", validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
+    dpi = tk.Spinbox(frameBot, width=4, textvariable=dpival, from_=1, to=9999, increment=1,
+            validate="key", validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
     dpi.grid(row=1, column=1, pady=5)
     dpiLabel = tk.Label(frameBot, text= "DPI:")
     dpiLabel.grid(row=1, column=0, pady=5, padx=10, sticky="e")
 
     marginshval = tk.IntVar(value=25)
-    marginsh = tk.Spinbox(frameBot, width=4, textvariable=marginshval, from_=0, to=9999, increment=1, validate="key", validatecommand=(window.register(spinboxValidate), "%P", 0, 9999))
+    marginsh = tk.Spinbox(frameBot, width=4, textvariable=marginshval, from_=0, to=9999,
+            increment=1, validate="key",
+            validatecommand=(window.register(spinboxValidate), "%P", 0, 9999))
     marginsh.grid(row=0, column=5, pady=5)
     marginshLabel = tk.Label(frameBot, text= "Horizontal Margins (mm):")
     marginshLabel.grid(row=0, column=2, columnspan=3, pady=5, padx=10, sticky="e")
 
     marginsvval = tk.IntVar(value=25)
-    marginsv = tk.Spinbox(frameBot, width=4, textvariable=marginsvval, from_=0, to=9999, increment=1, validate="key", validatecommand=(window.register(spinboxValidate), "%P", 0, 9999))
+    marginsv = tk.Spinbox(frameBot, width=4, textvariable=marginsvval, from_=0, to=9999,
+            increment=1, validate="key",
+            validatecommand=(window.register(spinboxValidate), "%P", 0, 9999))
     marginsv.grid(row=1, column=5, pady=5)
     marginsvLabel = tk.Label(frameBot, text= "Vertical Margins (mm):")
     marginsvLabel.grid(row=1, column=2, columnspan=3, pady=5, padx=10, sticky="e")
@@ -152,9 +160,11 @@ if __name__ == "__main__":
     mirrorboxLabel.grid(row=2, column=4, pady=5, padx=10)
 
     paperTypeRadio = tk.StringVar(value="select")
-    radioSelect = tk.Radiobutton(frameBot, text="Preset Paper", variable=paperTypeRadio, value="select", command=on_radio_selection)
+    radioSelect = tk.Radiobutton(frameBot, text="Preset Paper", variable=paperTypeRadio,
+            value="select", command=onRadioSelection)
     radioSelect.grid(row=3, column=0, pady=5, padx=10, columnspan=2, sticky="w")
-    radioCustom = tk.Radiobutton(frameBot, text="Custom Paper", variable=paperTypeRadio, value="custom", command=on_radio_selection)
+    radioCustom = tk.Radiobutton(frameBot, text="Custom Paper", variable=paperTypeRadio,
+            value="custom", command=onRadioSelection)
     radioCustom.grid(row=4, column=0, pady=5, padx=10, columnspan=2, sticky="w")
 
     paperSelectLabel = tk.Label(frameBot, text="Type:")
@@ -166,16 +176,20 @@ if __name__ == "__main__":
     paperWidthval = tk.IntVar(value=paperSizes["A4"][0])
     paperWidthLabel = tk.Label(frameBot, text="W (mm):")
     paperWidthLabel.grid(row=4, column=2, pady=5)
-    paperWidth = tk.Spinbox(frameBot, width=4, textvariable=paperWidthval, from_=1, to=9999, increment=1, validate="key", validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
+    paperWidth = tk.Spinbox(frameBot, width=4, textvariable=paperWidthval, from_=1, to=9999,
+            increment=1, validate="key",
+            validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
     paperWidth.grid(row=4, column=3, pady=5)
 
     paperHeightval = tk.IntVar(value=paperSizes["A4"][1])
     paperHeightLabel = tk.Label(frameBot, text="H (mm):")
     paperHeightLabel.grid(row=4, column=4, pady=5)
-    paperHeight = tk.Spinbox(frameBot, width=4, textvariable=paperHeightval, from_=1, to=9999, increment=1, validate="key", validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
+    paperHeight = tk.Spinbox(frameBot, width=4, textvariable=paperHeightval, from_=1, to=9999,
+            increment=1, validate="key",
+            validatecommand=(window.register(spinboxValidate), "%P", 1, 9999))
     paperHeight.grid(row=4, column=5, pady=5)
 
-    on_radio_selection()
+    onRadioSelection()
 
 
     loadingBar = ttk.Progressbar(window, orient="horizontal", mode="determinate")

@@ -1,9 +1,9 @@
-import drawsvg as dw
-import pybrl as brl
-from playwright.sync_api import sync_playwright
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 import threading
+import drawsvg as dw
+import pybrl as brl
+from playwright.sync_api import sync_playwright
 
 
 class CORSSimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -14,7 +14,7 @@ class CORSSimpleHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
 
-def start_server(port):
+def startServer(port):
     server = TCPServer(("localhost", port), CORSSimpleHTTPRequestHandler)
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
@@ -22,7 +22,7 @@ def start_server(port):
     print(f"Serving at http://localhost:{port}")
     return server, thread
 
-def stop_server(server, thread):
+def stopServer(server, thread):
     if server:
         server.shutdown()
         server.server_close()
@@ -46,9 +46,8 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
     feedback["value"]=0
     feedback.master.update_idletasks()
     PORT = 8000
-    fontFile = open("bin/courText.txt")
-    s64 = fontFile.read()
-    fontFile.close()
+    with open("bin/courText.txt", encoding="utf-8") as fontFile:
+        s64 = fontFile.read()
     style = """
     @font-face {
         font-family: courCustom;
@@ -66,16 +65,16 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
     
     margins = mmToPx(marginsmm, dpi)
     marginsV = mmToPx(marginsVmm, dpi)
-    
+
     width = mmToPx(widthmm,dpi)
     height = mmToPx(heightmm,dpi)
 
     s=s.strip()
-    s=s.replace("\n"," ") # TODO: Re-add newlines, fix super-long word infinitly wrapping
+    s=s.replace("\n"," ") # Re-add newlines, fix super-long word infinitly wrapping
     totalLen=len(s)
     news = ""
 
-    server, thread = start_server(PORT)
+    server, thread = startServer(PORT)
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -111,13 +110,12 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
                     if textWidth > (width-(margins*2)): 
                         feedback["value"]=(totalLen-len(s))*100/totalLen
                         break
-                    else: 
-                        line = newline
-                        s = s[index+1:]
+                    line = newline
+                    s = s[index+1:]
                 news+=line.strip()+"\n"
             browser.close()
     finally:
-        stop_server(server, thread)
+        stopServer(server, thread)
     s=news
     print(s)
 
@@ -125,7 +123,7 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
     d = dw.Drawing(width, height, origin=(0,0), font_family="courCustom")
     # Mark top right corner
     if mirror:
-        e = dw.Group(transform="scale(-1, 1) translate({}, 0)".format(-1*width))
+        e = dw.Group(transform=f"scale(-1, 1) translate({-1*width}, 0)")
         e.append(dw.Text(s, font_size=fontSize, x=margins, y=marginsV))
         e.append(dw.Line(width-50, 0, width, 50, stroke='black'))
         d.append(e)
@@ -140,6 +138,7 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
 
 if __name__ == "__main__":
     #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
-    textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way--in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.", {'value':0})
+    #textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way--in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.", {'value':0})
     #textToSVG("testing!")
     #textToSVG("supercalifragilisticexpialidocioussupercalifragilisticexpialidocious!")
+    pass
