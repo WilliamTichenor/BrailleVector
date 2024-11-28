@@ -1,6 +1,8 @@
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
+import socket
 import threading
+import os
 import drawsvg as dw
 import pybrl as brl
 from playwright.sync_api import sync_playwright
@@ -35,7 +37,7 @@ def textToBraille(s):
 def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
-def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marginsVmm=25, widthmm=210, heightmm=297):
+def textToSVG(s, feedback, directory, dirname, mirror=False, fontSize=24, dpi=96, marginsmm=25, marginsVmm=25, widthmm=210, heightmm=297):
     print(mirror)
     print(fontSize)
     print(dpi)
@@ -45,7 +47,9 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
     print(heightmm)
     feedback["value"]=0
     feedback.master.update_idletasks()
-    PORT = 8000
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(('', 0))
+        port = sock.getsockname()[1]
     with open("bin/courText.txt", encoding="utf-8") as fontFile:
         s64 = fontFile.read()
     style = """
@@ -54,7 +58,7 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
         src: url("""+s64+""")
     }
     """
-    fontPath = f"http://localhost:{PORT}/bin/cour.ttf"
+    fontPath = f"http://localhost:{port}/bin/cour.ttf"
     print(fontPath)
     styleCompact = """
     @font-face {
@@ -74,7 +78,7 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
     totalLen=len(s)
     news = ""
 
-    server, thread = startServer(PORT)
+    server, thread = startServer(port)
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -132,8 +136,16 @@ def textToSVG(s, feedback, mirror=False, fontSize=24, dpi=96, marginsmm=25, marg
         d.append(dw.Line(width-50, 0, width, 50, stroke='black'))
 
     d.append_css(style)
-    d.save_svg("test.svg")
+    newdirname = dirname
+    i = 1
+    while os.path.exists(directory+os.path.sep+newdirname):
+        print(newdirname+" exists")
+        newdirname = dirname+f"({i})"
+        i+=1
+    os.mkdir(directory+os.path.sep+newdirname)
+    d.save_svg(directory+os.path.sep+newdirname+os.path.sep+dirname+".svg")
     feedback["value"]=100
+    return 0
 
 
 if __name__ == "__main__":

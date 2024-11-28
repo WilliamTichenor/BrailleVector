@@ -8,7 +8,11 @@ def brailleWrapper(s, progressBar):
     if s == "" or inputText.cget('fg') == "gray":
         print("Please enter text!")
         return
-    filedialog.askdirectory()
+    directory = filedialog.askdirectory(mustexist=True)
+    if not directory:
+        print("Choose a file location!")
+        return
+    dirname = filename.get()
     sB = UtilsLocal.textToBraille(s)
     kwargs = {}
     kwargs['mirror'] = bool(mirror.get())
@@ -18,7 +22,7 @@ def brailleWrapper(s, progressBar):
     kwargs['marginsVmm'] = marginsvval.get()
     kwargs['widthmm'] = paperWidthval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][0]
     kwargs['heightmm'] = paperHeightval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][1]
-    UtilsLocal.textToSVG(sB, progressBar, **kwargs)
+    UtilsLocal.textToSVG(sB, progressBar, directory, dirname, **kwargs)
 
 def onFocusIn(event): # pylint: disable=W0613
     # Remove placeholder text when the user focuses on the widget
@@ -63,6 +67,13 @@ def spinboxValidate(userInput, amin, amax):
     else:
         print("Not numeric")
         return False
+    
+def validateFilename(userInput):
+    if len(userInput) > 255:
+        return False
+    if any(x in userInput for x in '/\\:*?<>|'):
+        return False
+    return True
 
 def uploadText():
     filePath = filedialog.askopenfilename()
@@ -112,6 +123,12 @@ if __name__ == "__main__":
     translateButton = tk.Button(frameTop, text="Convert and Save",
             command=lambda: brailleWrapper(inputText.get("1.0", "end-1c"), loadingBar))
     translateButton.pack(side="top", padx=10)
+
+    fileNamerLabel = tk.Label(frameTop, text="Name:")
+    fileNamerLabel.pack(side="top", padx=5)
+    filename = tk.StringVar(value="output")
+    fileNamer = tk.Entry(frameTop, textvariable=filename, validate='key', validatecommand=(window.register(validateFilename), "%P"), width=17)
+    fileNamer.pack(side="top", padx=10)
 
 
     fontsizeval = tk.IntVar(value=24)
