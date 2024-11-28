@@ -61,10 +61,8 @@ def spinboxValidate(userInput, amin, amax):
         if int(userInput) < int(amin) or int(userInput) > int(amax):
             print ("Out of range")
             return False
-        print(userInput)
         return True
     if userInput == "":
-        print(userInput)
         return True
     print("Not numeric")
     return False
@@ -78,6 +76,9 @@ def validateFilename(userInput):
 
 def uploadText():
     filePath = filedialog.askopenfilename()
+    if not filePath:
+        print("Choose a file!")
+        return
     print("Opening: "+filePath)
     with open(filePath, "rt", encoding="utf-8") as file:
         s = file.read()
