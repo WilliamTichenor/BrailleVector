@@ -89,9 +89,10 @@ disable=raw-checker-failed,
         possibly-used-before-assignment,
         missing-module-docstring,
         missing-class-docstring,
-        missing-function-docstring
+        missing-function-docstring,
         too-many-locals,
-        too-many-arguemnts,
+        too-many-arguments,
+        too-many-positional-arguments,
         too-many-statements
 
 # Enable the message, report, category or checker with the given id(s). You can
