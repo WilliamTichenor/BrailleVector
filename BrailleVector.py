@@ -63,12 +63,11 @@ def spinboxValidate(userInput, amin, amax):
             return False
         print(userInput)
         return True
-    elif userInput == "":
+    if userInput == "":
         print(userInput)
         return True
-    else:
-        print("Not numeric")
-        return False
+    print("Not numeric")
+    return False
 
 def validateFilename(userInput):
     if len(userInput) > 255:

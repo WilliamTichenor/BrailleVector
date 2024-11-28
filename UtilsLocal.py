@@ -40,13 +40,6 @@ def mmToPx(mm, dpi):
 def textToSVG(s, feedback, directory, dirname,
             mirror=False, fontSize=24, dpi=96,
             marginsmm=25, marginsVmm=25, widthmm=210, heightmm=297):
-    print(mirror)
-    print(fontSize)
-    print(dpi)
-    print(marginsmm)
-    print(marginsVmm)
-    print(widthmm)
-    print(heightmm)
     feedback["value"]=0
     feedback.master.update_idletasks()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
