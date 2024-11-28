@@ -20,8 +20,10 @@ def brailleWrapper(s, progressBar):
     kwargs['dpi'] = dpival.get()
     kwargs['marginsmm'] = marginshval.get()
     kwargs['marginsVmm'] = marginsvval.get()
-    kwargs['widthmm'] = paperWidthval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][0]
-    kwargs['heightmm'] = paperHeightval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][1]
+    kwargs['widthmm'] = (
+        paperWidthval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][0])
+    kwargs['heightmm'] = (
+        paperHeightval.get() if paperTypeRadio == "custom" else paperSizes[paperSelect.get()][1])
     UtilsLocal.textToSVG(sB, progressBar, directory, dirname, **kwargs)
 
 def onFocusIn(event): # pylint: disable=W0613
@@ -67,7 +69,7 @@ def spinboxValidate(userInput, amin, amax):
     else:
         print("Not numeric")
         return False
-    
+
 def validateFilename(userInput):
     if len(userInput) > 255:
         return False
@@ -127,7 +129,8 @@ if __name__ == "__main__":
     fileNamerLabel = tk.Label(frameTop, text="Name:")
     fileNamerLabel.pack(side="top", padx=5)
     filename = tk.StringVar(value="output")
-    fileNamer = tk.Entry(frameTop, textvariable=filename, validate='key', validatecommand=(window.register(validateFilename), "%P"), width=17)
+    fileNamer = tk.Entry(frameTop, textvariable=filename, validate='key',
+            validatecommand=(window.register(validateFilename), "%P"), width=17)
     fileNamer.pack(side="top", padx=10)
 
 

@@ -37,7 +37,9 @@ def textToBraille(s):
 def mmToPx(mm, dpi):
     return mm*dpi/25.4
 
-def textToSVG(s, feedback, directory, dirname, mirror=False, fontSize=24, dpi=96, marginsmm=25, marginsVmm=25, widthmm=210, heightmm=297):
+def textToSVG(s, feedback, directory, dirname,
+            mirror=False, fontSize=24, dpi=96,
+            marginsmm=25, marginsVmm=25, widthmm=210, heightmm=297):
     print(mirror)
     print(fontSize)
     print(dpi)
@@ -66,7 +68,7 @@ def textToSVG(s, feedback, directory, dirname, mirror=False, fontSize=24, dpi=96
         src: url('"""+fontPath+"""')
     }
     """
-    
+
     margins = mmToPx(marginsmm, dpi)
     marginsV = mmToPx(marginsVmm, dpi)
 
@@ -94,15 +96,15 @@ def textToSVG(s, feedback, directory, dirname, mirror=False, fontSize=24, dpi=96
                     newline = line+s[:index+1]
 
                     # Test the size of newline!
-                    
+
                     # Playwright browser test method
                     d = dw.Drawing(width, height, origin=(0,0), font_family="courCustom")
                     d.append(dw.Text(newline, font_size=fontSize, x=0, y=0))
                     d.append_css(styleCompact)
                     svgs = d.as_svg()
                     svgs = svgs.replace('<text ', '<text id="myText" ')
-                    svg_html = "<!DOCTYPE html><html><body>"+svgs+"</body></html>"
-                    page.set_content(svg_html)
+                    svgHtml = "<!DOCTYPE html><html><body>"+svgs+"</body></html>"
+                    page.set_content(svgHtml)
                     textWidth = page.evaluate("""
                         () => {
                             const text = document.getElementById('myText');
@@ -111,7 +113,7 @@ def textToSVG(s, feedback, directory, dirname, mirror=False, fontSize=24, dpi=96
                         }
                     """)
 
-                    if textWidth > (width-(margins*2)): 
+                    if textWidth > (width-(margins*2)):
                         feedback["value"]=(totalLen-len(s))*100/totalLen
                         break
                     line = newline
@@ -146,11 +148,3 @@ def textToSVG(s, feedback, directory, dirname, mirror=False, fontSize=24, dpi=96
     d.save_svg(directory+os.path.sep+newdirname+os.path.sep+dirname+".svg")
     feedback["value"]=100
     return 0
-
-
-if __name__ == "__main__":
-    #print(brl.toUnicodeSymbols(brl.translate(input("Enter: ")), flatten=True))
-    #textToSVG("⠠⠭ ⠴ ⠮ ⠆⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠺⠕⠗⠌ ⠷ ⠞⠊⠍⠑⠎ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠺⠊⠎⠙⠕⠍ ⠭ ⠴ ⠮ ⠁⠛⠑ ⠷ ⠋⠕⠕⠇⠊⠩⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠆⠑⠇⠊⠋ ⠭ ⠴ ⠮ ⠑⠏⠕⠡ ⠷ ⠔⠉⠗⠫⠥⠇⠊⠞⠽ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠇⠊⠣⠞ ⠭ ⠴ ⠮ ⠎⠂⠎⠕⠝ ⠷ ⠠⠙⠜⠅⠝⠑⠎⠎ ⠭ ⠴ ⠮ ⠎⠏⠗⠬ ⠷ ⠓⠕⠏⠑ ⠭ ⠴ ⠮ ⠺⠔⠞⠻ ⠷ ⠙⠑⠎⠏⠁⠊⠗ ⠺⠑ ⠓⠁⠙ ⠑⠧⠻⠽⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠓⠁⠙ ⠝⠕⠹⠬ ⠆⠑⠿ ⠥ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠋⠋ ⠠⠓⠂⠧⠢ ⠺⠑ ⠛⠛ ⠁⠇⠇ ⠛⠕⠬ ⠙⠊⠗⠑⠉⠞ ⠮ ⠕⠮⠗ ⠺⠁⠽⠔ ⠩⠕⠗⠞ ⠮ ⠏⠻⠊⠕⠙ ⠴ ⠎ ⠋⠜ ⠇⠊⠅⠑ ⠮ ⠏⠗⠑⠎⠢⠞ ⠏⠻⠊⠕⠙ ⠞ ⠎⠕⠍⠑ ⠷ ⠊⠞⠎ ⠝⠕⠊⠎⠊⠑⠌ ⠁⠥⠹⠕⠗⠊⠞⠊⠑⠎ ⠔⠎⠊⠌⠫ ⠕⠝ ⠊⠞⠎ ⠆⠬ ⠗⠑⠉⠑⠊⠧⠫ ⠿ ⠛⠕⠕⠙ ⠕⠗ ⠿ ⠑⠧⠊⠇ ⠔ ⠮ ⠎⠥⠏⠻⠇⠁⠞⠊⠧⠑ ⠙⠑⠛⠗⠑⠑ ⠷ ⠉⠕⠍⠏⠜⠊⠎⠕⠝ ⠕⠝⠇⠽ It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way--in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.", {'value':0})
-    #textToSVG("testing!")
-    #textToSVG("supercalifragilisticexpialidocioussupercalifragilisticexpialidocious!")
-    pass
